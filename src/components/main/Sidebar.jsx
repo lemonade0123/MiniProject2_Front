@@ -1,13 +1,18 @@
-// src/components/main/SideBar.jsx
-// Sidebar.jsx
-import React, { useState, useEffect } from "react";
-// import { Link } from "react-router-dom"; // Link 사용 안 함
-import styles from "./Sidebar.module.css";
-import logo from "../../assets/Logo.png";
-import RegisterModal from "./Register";
-import { kakaoLogin } from "../../utils/KakaoLogin";
+// src/components/main/SideBar.jsx (또는 Sidebar.jsx)
+// Gist에 올려주신 코드를 기반으로 합니다.
 
-export default function SideBar({ onNavigate, currentView }) {
+import React, { useState, useEffect } from "react";
+import styles from "./Sidebar.module.css"; // CSS Modules 경로 확인
+import logo from "../../assets/Logo.png"; // 로고 경로 확인 (이전엔 Logo.jpg 였습니다)
+import RegisterModal from "./Register"; // Register.jsx (또는 RegisterModal.jsx) 경로 확인
+import { kakaoLogin } from "../../utils/KakaoLogin"; // KakaoLogin 유틸 경로 확인
+// import { Link } from "react-router-dom"; // 사용하지 않으므로 주석 처리 또는 삭제
+
+// App.jsx에서 정의한 PAGE_KEYS를 여기서도 사용하려면 import 해야 합니다.
+// 또는 문자열을 직접 사용합니다. 여기서는 문자열을 직접 사용하는 것으로 가정합니다.
+// import { PAGE_KEYS } from '../../constants/pageKeys'; // 예시 경로
+
+export default function SideBar({ onNavigate }) { // onNavigate, currentView props를 받습니다.
   const [collapsed, setCollapsed] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -25,6 +30,7 @@ export default function SideBar({ onNavigate, currentView }) {
       })
       .catch((err) => {
         console.error("로그인 실패:", err);
+        alert("로그인에 실패했습니다.");
       });
   };
 
@@ -35,12 +41,16 @@ export default function SideBar({ onNavigate, currentView }) {
         console.log("카카오 SDK 로그아웃 완료");
         localStorage.removeItem("jwt");
         setIsLoggedIn(false);
-        setView("metro"); // 로그아웃 시 홈 화면으로
+        if (typeof onNavigate === 'function') {
+          onNavigate("metro"); // 로그아웃 시 메인(지하철) 화면으로
+        }
       });
     } else {
       localStorage.removeItem("jwt");
       setIsLoggedIn(false);
-      setView("metro"); // 로그아웃 시 홈 화면으로
+      if (typeof onNavigate === 'function') {
+        onNavigate("metro"); // 로그아웃 시 메인(지하철) 화면으로
+      }
     }
   };
 
@@ -48,9 +58,16 @@ export default function SideBar({ onNavigate, currentView }) {
     setShowBoardSubMenu(prevShow => !prevShow);
   };
 
+  // 페이지 이동 처리 함수
   const handleNavigation = (pageKey) => {
-    onNavigate(pageKey);
-    setShowBoardSubMenu(false);
+    console.log(`SideBar: Navigating to '${pageKey}'`); // ❗️ 로그 추가
+    if (typeof onNavigate === 'function') {
+      onNavigate(pageKey); // App.jsx의 navigateToPage 호출
+      setShowBoardSubMenu(false); // 다른 페이지로 이동 시 게시판 하위 메뉴는 닫음
+      // setCollapsed(true); // 필요시 사이드바도 닫기 (선택 사항)
+    } else {
+      console.error("SideBar: onNavigate prop is not a function or not provided!", onNavigate);
+    }
   };
 
   return (
@@ -85,7 +102,11 @@ export default function SideBar({ onNavigate, currentView }) {
                 </>
               ) : (
                 <>
-                  <button className={styles.button} onClick={() => setView("mypage")}>
+                  <button className={`${styles.navButton} ${styles.authButton}`} onClick={handleLogout}>
+                    로그아웃
+                  </button>
+                  {/* ❗️ MyPage 버튼: handleNavigation 사용 확인 */}
+                  <button onClick={() => handleNavigation('mypage')} className={styles.navButton}>
                     마이페이지
                   </button>
                 </>
@@ -121,27 +142,12 @@ export default function SideBar({ onNavigate, currentView }) {
                 )}
               </div>
               
-              {/* ❗️ "내 가게 관리" 버튼 및 관련 조건부 렌더링 삭제됨 */}
-              {/* {isLoggedIn && (
-                <button onClick={() => handleNavigation('store')} className={styles.navButton}>
-                  내 가게 관리
-                </button>
-              )} 
-              */}
+              {/* "내 가게 관리" 버튼은 이전 요청에 따라 삭제된 상태 유지 */}
             </nav>
-            <hr />
-            <button className={styles.button}>게시판</button>
-            {isLoggedIn && (
-              <>
-                <button className={styles.button}>즐겨찾기</button>                
-                <button className={styles.buttonLogOut} onClick={handleLogout}>
-                  로그아웃
-                </button>
-              </>
-            )}
           </div>
         )}
       </aside>
+
       {showRegister && <RegisterModal onClose={() => setShowRegister(false)} />}
     </>
   );
