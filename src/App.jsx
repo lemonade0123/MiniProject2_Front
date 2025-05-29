@@ -17,6 +17,7 @@ import FreeBoardPage from "./pages/board/FreeBoardPage";
 import MealMateBoardPage from "./pages/board/MealMateBoardPage";
 import ReviewBoardPage from "./pages/review/ReviewPage";
 import StoreManagementPage from "./pages/storemanagement/StoreManagementPage";
+import ChangeGradePage from "./pages/grade/ChangeGradePage";
 
 // 테마 모드 변경을 위한 Context 생성
 const ColorModeContext = createContext({ toggleColorMode: () => {} });
@@ -100,6 +101,8 @@ function AppContent() {
             <ReviewBoardPage />
           ) : view === "manageStore" ? (
             <StoreManagementPage />
+          ) : view === "changeGrade" ? (
+            <ChangeGradePage />
           ) : (
             // 기본 뷰 (MetroMap 및 StationInfo)
             <>
