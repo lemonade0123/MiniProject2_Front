@@ -1,45 +1,60 @@
 // src/components/main/StationInfo.jsx
-import React from 'react'; // React.Fragment 사용을 위해 임포트
+import React from 'react';
 import { Paper, Typography, List, ListItem, ListItemText, Divider, Box } from '@mui/material';
-// CSS 모듈 임포트는 더 이상 필요 없습니다.
-// import styles from "./StationInfo.module.css";
+// import styles from "./StationInfo.module.css"; // 이 줄은 더 이상 필요 없습니다.
 
-// 음식점 데이터는 그대로 유지합니다.
+// 음식점 데이터는 이 컴포넌트 내부에 정의 (사용자가 제공한 "정상" 버전 기반)
 const restaurantData = {
   seoul: ["백종원김밥", "역전우동", "서울돈까스"],
   cityhall: ["광화문족발", "시청국밥", "도시락천국"],
   jonggak: ["종로피자", "짜장면천국", "포케하와이"],
   jongno3: ["곱창이야기", "떡볶이포차", "김치찜전문점"],
-  // 다른 역들에 대한 데이터도 필요하다면 여기에 추가...
+  // 다른 역들에 대한 데이터를 여기에 추가할 수 있습니다.
 };
 
 export default function StationInfo({ station }) {
-  // station prop이 없을 경우를 대비하여 옵셔널 체이닝 및 기본값 처리
-  const restaurants = station ? (restaurantData[station.code] || []) : [];
+  // station prop이 유효하고 station.code가 있을 때만 restaurants를 찾습니다.
+  // station.code를 소문자로 변환하여 restaurantData의 키와 일치시킬 수 있도록 합니다 (선택 사항).
+  const restaurants =
+    station && station.code
+      ? restaurantData[station.code.toLowerCase()] || []
+      : [];
 
-  // station 정보가 없으면 아무것도 렌더링하지 않거나 로딩/안내 메시지 표시 가능
+  // station 정보가 없으면 사용자에게 안내 메시지를 보여주는 Paper를 반환합니다.
   if (!station) {
-    return null; // 또는 <Typography>정보를 표시할 역을 선택해주세요.</Typography> 등
+    return (
+      <Paper
+        elevation={2}
+        sx={{
+          p: { xs: 2, sm: 3 },
+          width: '100%',
+          borderRadius: 2,
+          bgcolor: 'background.paper',
+          textAlign: 'center', // 텍스트 중앙 정렬
+        }}
+      >
+        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+          역 정보를 보려면 지도에서 역을 선택해주세요. 🗺️
+        </Typography>
+      </Paper>
+    );
   }
 
   return (
-    // Paper 컴포넌트를 사용하여 정보 박스를 감쌉니다.
-    // Paper는 약간의 입체감(그림자)과 구분되는 배경을 제공합니다.
     <Paper
-      elevation={2} // 그림자 깊이 (0~24)
+      elevation={2} // Paper에 약간의 그림자 효과
       sx={{
-        p: { xs: 2, sm: 3 }, // 반응형 패딩 (기존 App.jsx에서의 패딩과 유사하게)
+        p: { xs: 2, sm: 3 }, // 반응형 내부 패딩
         width: '100%',       // 부모 컨테이너의 전체 너비 사용
-        borderRadius: 2,     // 테마의 기본 borderRadius 값의 2배 (예: 4px * 2 = 8px)
+        borderRadius: 2,     // 테마 기반 모서리 둥글기
         bgcolor: 'background.paper', // 테마의 paper 배경색 (다크/라이트 모드 자동 대응)
-        // mt: 3, // 상단 마진은 이 컴포넌트를 사용하는 부모에서 지정하는 것이 좋습니다.
       }}
     >
       <Typography
-        variant="h6" // 제목 크기 (h2는 너무 클 수 있어 h6로 조정)
-        component="h2" // HTML 시맨틱 태그는 h2로 유지
-        gutterBottom // 아래쪽 마진 추가
-        sx={{ color: 'text.primary' }} // 테마의 주요 텍스트 색상 사용
+        variant="h6" // 제목 크기
+        component="h2" // 시맨틱 HTML 태그
+        gutterBottom   // 제목 아래에 마진 추가
+        sx={{ color: 'text.primary', fontWeight: 'medium' }} // 테마의 주요 텍스트 색상 및 굵기
       >
         {station.name}역 근처 음식점
       </Typography>
@@ -47,9 +62,10 @@ export default function StationInfo({ station }) {
       {restaurants.length > 0 ? (
         <List disablePadding> {/* ul 태그의 기본 패딩 제거 */}
           {restaurants.map((name, idx) => (
-            // React.Fragment를 사용하여 key를 전달하고, 각 아이템 사이에 Divider를 넣습니다.
+            // 음식점 이름이 중복될 수 있으므로, 현재는 index를 key로 사용합니다.
+            // 각 음식점 데이터에 고유 ID가 있다면 그것을 사용하는 것이 더 좋습니다.
             <React.Fragment key={idx}>
-              <ListItem sx={{ py: 0.5 }}> {/* 리스트 아이템의 수직 패딩을 약간 줄임 */}
+              <ListItem sx={{ py: 0.5, px: 0 }}> {/* 리스트 아이템의 수직 패딩 및 좌우 패딩 제거 (선택 사항) */}
                 <ListItemText
                   primary={name}
                   sx={{ color: 'text.secondary' }} // 부가적인 텍스트 색상 사용
@@ -62,7 +78,7 @@ export default function StationInfo({ station }) {
         </List>
       ) : (
         <Typography variant="body2" sx={{ color: 'text.secondary', mt: 2 }}>
-          주변 음식점 정보가 없습니다. 😥
+          {station.name}역 근처에 등록된 음식점 정보가 없습니다. 😥
         </Typography>
       )}
     </Paper>
