@@ -48,7 +48,6 @@ const DUMMY_POST_DATA = [
 ];
 
 const MealMateBoardPage = () => {
-  console.log("MealMateBoardPage 렌더링 시작!");
   const [postList, setPostList] = useState(DUMMY_POST_DATA);
 
   // 게시글 추가 시 호출될 함수 (그대로 유지)
@@ -57,8 +56,6 @@ const MealMateBoardPage = () => {
     setPostList(prevPosts => [newPostItem, ...postList]);
     console.log("업데이트된 postList:", [newPostItem, ...postList]);
   };
-
-  console.log("현재 postList 상태:", postList);
 
   return (
     // 기존 div.mealmate-board-page-container를 Box로 대체

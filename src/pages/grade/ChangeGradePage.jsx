@@ -2,7 +2,8 @@
 import React, { useEffect, useState } from "react";
 import {
   Box, Typography, Paper, List, ListItem, ListItemText,
-  Button, Divider, TextField, Alert, IconButton, Collapse
+  Button, Divider, TextField, Alert, IconButton, Collapse,
+  useTheme // ❗️ useTheme 훅 임포트 추가!
 } from "@mui/material";
 import AddBusinessIcon from '@mui/icons-material/AddBusiness';
 import CancelIcon from '@mui/icons-material/Cancel';
@@ -10,8 +11,9 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import StorefrontIcon from '@mui/icons-material/Storefront';
 
 export default function ChangeGradePage() {
+  const theme = useTheme(); // ❗️ 현재 테마 객체 가져오기
   const [stores, setStores] = useState([]);
-  const [isInitialLoadComplete, setIsInitialLoadComplete] = useState(false); // 로딩 완료 상태
+  const [isInitialLoadComplete, setIsInitialLoadComplete] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [error, setError] = useState("");
   const [storeInfo, setStoreInfo] = useState({
@@ -34,21 +36,19 @@ export default function ChangeGradePage() {
       console.error("ChangeGradePage: 로컬 스토리지 로딩/파싱 실패", e);
     }
     setStores(loadedStores);
-    setIsInitialLoadComplete(true); // 로딩 완료 플래그 설정
-    // 가게가 없으면 처음부터 폼을 보여줄 수 있습니다.
-    // setShowForm(loadedStores.length === 0);
-  }, []); // 마운트 시 한 번만 실행
+    setIsInitialLoadComplete(true);
+  }, []);
 
   // 2. stores 상태가 '변경'될 때만 localStorage에 저장 (초기 로딩 완료 후)
   useEffect(() => {
-    if (isInitialLoadComplete) { // 초기 로딩이 완료된 후에만 저장
+    if (isInitialLoadComplete) {
       try {
         localStorage.setItem('userRegisteredStores', JSON.stringify(stores));
       } catch (e) {
         console.error("ChangeGradePage: 로컬 스토리지 저장 실패", e);
       }
     }
-  }, [stores, isInitialLoadComplete]); // stores 또는 isInitialLoadComplete가 변경될 때 실행
+  }, [stores, isInitialLoadComplete]);
 
   const userLevel = stores.length > 0 ? "점주" : "일반";
 
@@ -83,7 +83,7 @@ export default function ChangeGradePage() {
       setStores(updatedStores);
       if (updatedStores.length === 0) {
         alert("모든 가게가 삭제되어 일반 회원으로 변경됩니다! 😿");
-        setShowForm(true); // 가게가 다 없어지면 다시 등록 폼을 보여줄 수 있음
+        setShowForm(true);
       } else {
         alert("가게가 폐업 처리되었습니다. 🏚️");
       }
@@ -106,8 +106,16 @@ export default function ChangeGradePage() {
       </Typography>
 
       <Paper elevation={1} sx={{ p: 2, textAlign: 'center', bgcolor: 'background.default', borderRadius: 2, width: 'fit-content', minWidth: '280px' }}>
-        <Typography variant="h6" component="h2" sx={{color: 'text.secondary'}}>
-          현재 회원님의 등급은 <Typography component="span" variant="h6" sx={{fontWeight:'bold', color: userLevel === "점주" ? 'success.main' : 'secondary.main'}}>{userLevel}</Typography> 입니다.
+        <Typography variant="h6" component="h2" sx={{ color: 'text.secondary' }}> {/* ❗️이 부분의 text.secondary가 문제일 수 있음 */}
+          현재 회원님의 등급은 <Typography component="span" variant="h6"
+            sx={{
+              fontWeight:'bold',
+              // ❗️ userLevel 텍스트 색상을 다크 모드에 맞게 명시적으로 설정
+              color: userLevel === "점주" ? 'success.main' : (theme.palette.mode === 'dark' ? 'text.primary' : 'text.secondary')
+            }}
+          >
+            {userLevel}
+          </Typography> 입니다.
         </Typography>
         {userLevel === "일반" && !showForm &&
             <Typography variant="body2" color="text.disabled" sx={{mt:0.5}}>
@@ -121,12 +129,13 @@ export default function ChangeGradePage() {
         }
       </Paper>
 
+      {/* ... (이하 Button, Collapse, Paper form, 가게 목록 등 나머지 JSX는 이전 답변과 동일하게 유지) ... */}
       <Button
         variant="contained"
         onClick={() => {
             setShowForm(!showForm);
             if (showForm) setError("");
-            if (!showForm) { // 폼을 새로 열 때, 입력 필드 초기화
+            if (!showForm) {
                 setStoreInfo({
                     name: "", address: "", hours: "", contact: "",
                     description: "", registrationNumber: ""
